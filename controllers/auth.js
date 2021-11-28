@@ -1,26 +1,41 @@
 const User = require("../models/User");
 const { StatusCodes } = require("http-status-codes");
+const { BadRequestError, NotFoundError, AuthenticationError } = require("../errors");
 
 const register = async (req, res) => {
    const user = await User.create({ ...req.body });
-   const { name, email, dob, location, about, _id: id } = user;
+   const { _id: id } = user;
    const token = user.createJWT();
    res.status(StatusCodes.CREATED).json({
-      user: { name, email, dob, location, about, id },
+      id,
       token,
    });
 };
 
 const login = async (req, res) => {
-   const user = await User.findOne({ email: req.body.email });
-   if (user.comparePassword(req.body.password)) {
-      const { name, email, dob, location, about, _id: id } = user;
-      const token = user.createJWT();
-      res.status(StatusCodes.CREATED).json({
-         user: { name, email, dob, location, about, id },
-         token,
-      });
+   if (!req.body.email || !req.body.password) {
+      throw new BadRequestError("Please provide email and password");
    }
+
+   const user = await User.findOne({ email: req.body.email });
+
+   if (!user) {
+      throw new NotFoundError("Invalid credentials");
+   }
+
+   const isPasswordCorrect = await user.comparePassword(req.body.password);
+
+   if (!isPasswordCorrect) {
+      throw new AuthenticationError("Invalid credentials");
+   }
+
+   const { _id: id } = user;
+   const token = user.createJWT();
+
+   res.status(StatusCodes.OK).json({
+      id,
+      token,
+   });
 };
 
 module.exports = { register, login };

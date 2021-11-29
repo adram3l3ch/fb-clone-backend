@@ -21,9 +21,15 @@ const updateUser = async (req, res) => {
       new: true,
       runValidators: true,
    });
+   if (!user) {
+      throw new NotFoundError(`No user exist with id ${id}`);
+   }
+   const token = user.createJWT();
    const { name, email, dob, about, createdAt, location } = user;
    res.status(StatusCodes.OK).json({
       user: { name, email, dob, about, createdAt, location },
+      token,
+      id,
    });
 };
 

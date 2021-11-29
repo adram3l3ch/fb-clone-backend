@@ -30,4 +30,27 @@ const getAllPosts = async (req, res) => {
    res.json({ posts });
 };
 
-module.exports = { createPost, getAllPosts };
+const likePost = async (req, res) => {
+   const { add } = req.query;
+   if (add === "true") {
+      await Post.findByIdAndUpdate(
+         req.body.id,
+         {
+            $push: { likes: req.user.id },
+         },
+         { new: true, runValidators: true }
+      );
+   } else {
+      await Post.findByIdAndUpdate(
+         req.body.id,
+         {
+            $pull: { likes: req.user.id },
+         },
+         { new: true, runValidators: true }
+      );
+   }
+   const posts = await Post.find().sort("-createdAt");
+   res.json({ posts });
+};
+
+module.exports = { createPost, getAllPosts, likePost };

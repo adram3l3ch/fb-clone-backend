@@ -4,11 +4,13 @@ const { BadRequestError, NotFoundError, AuthenticationError } = require("../erro
 
 const register = async (req, res) => {
    const user = await User.create({ ...req.body });
-   const { _id: id } = user;
+   const { _id: id, name, profileImage } = user;
    const token = user.createJWT();
    res.status(StatusCodes.CREATED).json({
       id,
       token,
+      name,
+      profileImage,
    });
 };
 
@@ -29,12 +31,14 @@ const login = async (req, res) => {
       throw new AuthenticationError("Invalid credentials");
    }
 
-   const { _id: id } = user;
+   const { _id: id, name, profileImage } = user;
    const token = user.createJWT();
 
    res.status(StatusCodes.OK).json({
       id,
       token,
+      name,
+      profileImage,
    });
 };
 

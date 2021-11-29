@@ -19,6 +19,10 @@ const UserSchema = new mongoose.Schema(
          ],
          unique: true,
       },
+      profileImage: {
+         type: String,
+         default: "",
+      },
       password: {
          type: String,
          required: [true, "Please provide password"],
@@ -47,9 +51,13 @@ UserSchema.pre("save", async function () {
 });
 
 UserSchema.methods.createJWT = function () {
-   return jwt.sign({ id: this._id, name: this.name }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_LIFETIME,
-   });
+   return jwt.sign(
+      { id: this._id, name: this.name, profileImage: this.profileImage },
+      process.env.JWT_SECRET,
+      {
+         expiresIn: process.env.JWT_LIFETIME,
+      }
+   );
 };
 
 UserSchema.methods.comparePassword = async function (pw) {

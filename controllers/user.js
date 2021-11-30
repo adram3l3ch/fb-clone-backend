@@ -6,16 +6,23 @@ const cloudinary = require("cloudinary").v2;
 
 const getUser = async (req, res) => {
    const { id } = req.params;
-   const user = await User.findOne({ _id: id });
+   const user = await User.findOne({ _id: id }).select({ password: 0 });
 
    if (!user) {
       throw new NotFoundError(`No user exist with id ${id}`);
    }
-   const { name, email, dob, about, createdAt, location, profileImage } = user;
 
-   res.status(StatusCodes.OK).json({
-      user: { name, email, dob, about, createdAt, location, profileImage },
-   });
+   res.status(StatusCodes.OK).json({ user });
+};
+
+const getUsers = async (req, res) => {
+   const user = await User.find().select({ password: 0 });
+
+   if (!user) {
+      throw new NotFoundError(`No users`);
+   }
+
+   res.status(StatusCodes.OK).json({ user });
 };
 
 const updateUser = async (req, res) => {
@@ -23,17 +30,14 @@ const updateUser = async (req, res) => {
    const user = await User.findByIdAndUpdate(id, req.body, {
       new: true,
       runValidators: true,
-   });
+   }).select({ password: 0 });
+
    if (!user) {
       throw new NotFoundError(`No user exist with id ${id}`);
    }
    const token = user.createJWT();
-   const { name, email, dob, about, createdAt, location, profileImage } = user;
 
-   res.status(StatusCodes.OK).json({
-      user: { name, email, dob, about, createdAt, location, profileImage },
-      token,
-   });
+   res.status(StatusCodes.OK).json({ user, token });
 };
 
 const updateDP = async (req, res) => {
@@ -51,12 +55,9 @@ const updateDP = async (req, res) => {
       req.user.id,
       { profileImage: src },
       { new: true, runValidators: true }
-   );
+   ).select({ password: 0 });
 
-   const { name, email, dob, about, createdAt, location, profileImage } = user;
-   res.status(StatusCodes.OK).json({
-      user: { name, email, dob, about, createdAt, location, profileImage },
-   });
+   res.status(StatusCodes.OK).json({ user });
 };
 
-module.exports = { getUser, updateUser, updateDP };
+module.exports = { getUser, updateUser, updateDP, getUsers };

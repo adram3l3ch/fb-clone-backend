@@ -25,32 +25,56 @@ const createPost = async (req, res) => {
    }
 };
 
-const getAllPosts = async (req, res) => {
-   const posts = await Post.find().sort("-createdAt");
-   res.json({ posts });
+const getPosts = async (req, res) => {
+   const { by } = req.query;
+   if (by) {
+      const posts = await Post.find({ createdBy: by }).sort("-createdAt");
+      res.status(StatusCodes.OK).json({ posts });
+   } else {
+      const posts = await Post.find().sort("-createdAt");
+      res.status(StatusCodes.OK).json({ posts });
+   }
+};
+
+const getPost = async (req, res) => {
+   const { id } = req.params;
+   const posts = await Post.findById(id);
+   res.status(StatusCodes.OK).json({ posts });
 };
 
 const likePost = async (req, res) => {
    const { add } = req.query;
    if (add === "true") {
-      await Post.findByIdAndUpdate(
+      const posts = await Post.findByIdAndUpdate(
          req.body.id,
          {
             $push: { likes: req.user.id },
          },
          { new: true, runValidators: true }
       );
+      res.status(StatusCodes.OK).json({ posts });
    } else {
-      await Post.findByIdAndUpdate(
+      const posts = await Post.findByIdAndUpdate(
          req.body.id,
          {
             $pull: { likes: req.user.id },
          },
          { new: true, runValidators: true }
       );
+      res.status(StatusCodes.OK).json({ posts });
    }
-   const posts = await Post.find().sort("-createdAt");
-   res.json({ posts });
 };
 
-module.exports = { createPost, getAllPosts, likePost };
+const commentPost = async (req, res) => {
+   console.log(req.body.comment);
+   const posts = await Post.findByIdAndUpdate(
+      req.body.id,
+      {
+         $push: { comments: { commentedBy: req.user.id, comment: req.body.comment } },
+      },
+      { new: true, runValidators: true }
+   );
+   res.status(StatusCodes.OK).json({ posts });
+};
+
+module.exports = { createPost, getPosts, likePost, commentPost, getPost };

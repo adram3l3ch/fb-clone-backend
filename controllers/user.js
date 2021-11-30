@@ -16,13 +16,15 @@ const getUser = async (req, res) => {
 };
 
 const getUsers = async (req, res) => {
-   const user = await User.find().select({ password: 0 });
-
-   if (!user) {
-      throw new NotFoundError(`No users`);
+   const { search } = req.query;
+   if (search) {
+      const regex = new RegExp(search, "i");
+      const user = await User.find({ name: regex }).select({ password: 0 });
+      res.status(StatusCodes.OK).json({ user });
+   } else {
+      const user = await User.find().select({ password: 0 });
+      res.status(StatusCodes.OK).json({ user });
    }
-
-   res.status(StatusCodes.OK).json({ user });
 };
 
 const updateUser = async (req, res) => {
@@ -51,11 +53,14 @@ const updateDP = async (req, res) => {
    });
    fs.unlinkSync(image.tempFilePath);
    const { secure_url: src } = result;
+
    const user = await User.findByIdAndUpdate(
       req.user.id,
       { profileImage: src },
       { new: true, runValidators: true }
    ).select({ password: 0 });
+
+   if (!user) throw new NotFoundError(`No user exist with id ${req.user.id}`);
 
    res.status(StatusCodes.OK).json({ user });
 };

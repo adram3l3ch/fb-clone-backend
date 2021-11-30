@@ -1,4 +1,4 @@
-const { BadRequestError } = require("../errors");
+const { BadRequestError, NotFoundError } = require("../errors");
 const Post = require("../models/Post");
 const fs = require("fs");
 const cloudinary = require("cloudinary").v2;
@@ -26,9 +26,13 @@ const createPost = async (req, res) => {
 };
 
 const getPosts = async (req, res) => {
-   const { by } = req.query;
+   const { by, search } = req.query;
    if (by) {
       const posts = await Post.find({ createdBy: by }).sort("-createdAt");
+      res.status(StatusCodes.OK).json({ posts });
+   } else if (search) {
+      const regex = new RegExp(search, "i");
+      const posts = await Post.find({ caption: regex }).sort("-createdAt");
       res.status(StatusCodes.OK).json({ posts });
    } else {
       const posts = await Post.find().sort("-createdAt");
@@ -39,6 +43,7 @@ const getPosts = async (req, res) => {
 const getPost = async (req, res) => {
    const { id } = req.params;
    const posts = await Post.findById(id);
+   if (!posts) throw new NotFoundError(`No post with id${id}`);
    res.status(StatusCodes.OK).json({ posts });
 };
 
@@ -52,8 +57,10 @@ const likePost = async (req, res) => {
          },
          { new: true, runValidators: true }
       );
+
+      if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
       res.status(StatusCodes.OK).json({ posts });
-   } else {
+   } else if (add === "false") {
       const posts = await Post.findByIdAndUpdate(
          req.body.id,
          {
@@ -61,12 +68,14 @@ const likePost = async (req, res) => {
          },
          { new: true, runValidators: true }
       );
+      if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
       res.status(StatusCodes.OK).json({ posts });
+   } else {
+      throw new BadRequestError("Invalid url");
    }
 };
 
 const commentPost = async (req, res) => {
-   console.log(req.body.comment);
    const posts = await Post.findByIdAndUpdate(
       req.body.id,
       {
@@ -74,6 +83,9 @@ const commentPost = async (req, res) => {
       },
       { new: true, runValidators: true }
    );
+
+   if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
+
    res.status(StatusCodes.OK).json({ posts });
 };
 

@@ -1,4 +1,4 @@
-const { NotFoundError } = require("../errors");
+const { NotFoundError, BadRequestError } = require("../errors");
 const User = require("../models/User");
 const { StatusCodes } = require("http-status-codes");
 const fs = require("fs");
@@ -29,6 +29,7 @@ const getUsers = async (req, res) => {
 
 const getUsersByIDs = async (req, res) => {
    const ids = Object.values(req.query);
+   if (!ids) throw new BadRequestError("Expected atleast one id");
    const user = await User.find({ _id: { $in: ids } }).select({ password: 0 });
    res.status(StatusCodes.OK).json({ user });
 };

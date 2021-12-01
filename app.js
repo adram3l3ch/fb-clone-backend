@@ -44,7 +44,8 @@ app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
 app.use(
    cors({
-      allowedHeaders: "*",
+      allowedHeaders: "authorization",
+      origin: "*",
    })
 );
 

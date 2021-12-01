@@ -14,6 +14,7 @@ const createPost = async (req, res) => {
       const result = await cloudinary.uploader.upload(image.tempFilePath, {
          use_filename: true,
          folder: "fb-clone-posts",
+         quality: 50,
       });
       fs.unlinkSync(image.tempFilePath);
       const { secure_url: src } = result;

@@ -49,7 +49,7 @@ app.use(
    })
 );
 
-app.get("/api/v1", (req, res) => {
+app.get("/", (req, res) => {
    res.status(200).json({ msg: "welcome" });
 });
 

@@ -27,6 +27,12 @@ const getUsers = async (req, res) => {
    }
 };
 
+const getUsersByIDs = async (req, res) => {
+   const ids = Object.values(req.query);
+   const user = await User.find({ _id: { $in: ids } }).select({ password: 0 });
+   res.status(StatusCodes.OK).json({ user });
+};
+
 const updateUser = async (req, res) => {
    const { id } = req.user;
    const user = await User.findByIdAndUpdate(id, req.body, {
@@ -65,4 +71,4 @@ const updateDP = async (req, res) => {
    res.status(StatusCodes.OK).json({ user });
 };
 
-module.exports = { getUser, updateUser, updateDP, getUsers };
+module.exports = { getUser, updateUser, updateDP, getUsers, getUsersByIDs };

@@ -16,7 +16,7 @@ const PostSchema = new mongoose.Schema(
          required: true,
       },
       likes: {
-         type: [String],
+         type: Set,
       },
       comments: [
          {

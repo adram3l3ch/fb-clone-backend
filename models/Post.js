@@ -15,7 +15,9 @@ const PostSchema = new mongoose.Schema(
          ref: "User",
          required: true,
       },
-      likes: [{ type: String, unique: true }],
+      likes: {
+         type: [String],
+      },
       comments: [
          {
             commentedBy: {

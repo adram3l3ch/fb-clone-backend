@@ -51,16 +51,21 @@ const getPost = async (req, res) => {
 const likePost = async (req, res) => {
    const { add } = req.query;
    if (add === "true") {
-      const posts = await Post.findByIdAndUpdate(
-         req.body.id,
-         {
-            $push: { likes: req.user.id },
-         },
-         { new: true, runValidators: true }
-      );
-
+      const posts = await Post.findById(req.body.id);
       if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
-      res.status(StatusCodes.OK).json({ posts });
+
+      if (posts.likes.includes(req.user.id)) {
+         throw new BadRequestError("Already liked");
+      } else {
+         const posts = await Post.findByIdAndUpdate(
+            req.body.id,
+            {
+               $push: { likes: req.user.id },
+            },
+            { new: true, runValidators: true }
+         );
+         res.status(StatusCodes.OK).json({ posts });
+      }
    } else if (add === "false") {
       const posts = await Post.findByIdAndUpdate(
          req.body.id,

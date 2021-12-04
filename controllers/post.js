@@ -95,4 +95,10 @@ const commentPost = async (req, res) => {
    res.status(StatusCodes.OK).json({ posts });
 };
 
-module.exports = { createPost, getPosts, likePost, commentPost, getPost };
+const deletePost = async (req, res) => {
+   const { id } = req.params;
+   const post = await Post.findOneAndDelete({ _id: id, createdBy: req.user.id });
+   res.status(StatusCodes.OK).json(post);
+};
+
+module.exports = { createPost, getPosts, likePost, commentPost, getPost, deletePost };

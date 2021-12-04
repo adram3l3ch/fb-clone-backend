@@ -16,6 +16,9 @@ const xss = require("xss-clean");
 //app initialisation
 
 const app = express();
+const server = require("http").createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
 const PORT = process.env.PORT || 5000;
 
 //cloudinary configuration
@@ -53,6 +56,13 @@ app.get("/", (req, res) => {
    res.status(200).json({ msg: "welcome" });
 });
 
+io.on("connection", (socket) => {
+   console.log("user connected");
+   socket.on("send message", (message) => {
+      socket.broadcast.emit("recieve message", message);
+   });
+});
+
 //routes
 
 app.use("/api/v1/auth", authRouter);
@@ -65,7 +75,7 @@ app.use(notFoundMiddleware);
 const start = async () => {
    try {
       await connectDB(process.env.MONGO_URI);
-      app.listen(PORT, () => {
+      server.listen(PORT, () => {
          console.log(`Server is listening on port ${PORT}`);
       });
    } catch (error) {

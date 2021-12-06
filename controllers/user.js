@@ -1,5 +1,6 @@
 const { NotFoundError, BadRequestError } = require("../errors");
 const User = require("../models/User");
+const Post = require("../models/Post");
 const { StatusCodes } = require("http-status-codes");
 const fs = require("fs");
 const cloudinary = require("cloudinary").v2;
@@ -40,6 +41,10 @@ const updateUser = async (req, res) => {
       new: true,
       runValidators: true,
    }).select({ password: 0 });
+   await Post.updateMany(
+      { createdBy: req.user.id },
+      { userDetails: { name: user.name, image: user.profileImage } }
+   );
 
    if (!user) {
       throw new NotFoundError(`No user exist with id ${id}`);
@@ -66,6 +71,10 @@ const updateDP = async (req, res) => {
       { profileImage: src },
       { new: true, runValidators: true }
    ).select({ password: 0 });
+   await Post.updateMany(
+      { createdBy: req.user.id },
+      { userDetails: { name: user.name, image: user.profileImage } }
+   );
 
    if (!user) throw new NotFoundError(`No user exist with id ${req.user.id}`);
 

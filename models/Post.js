@@ -15,6 +15,15 @@ const PostSchema = new mongoose.Schema(
          ref: "User",
          required: true,
       },
+      userDetails: {
+         name: {
+            type: String,
+            required: true,
+         },
+         image: {
+            type: String,
+         },
+      },
       likes: {
          type: [String],
       },

@@ -1,5 +1,6 @@
 const { BadRequestError, NotFoundError } = require("../errors");
 const Post = require("../models/Post");
+const User = require("../models/User");
 const fs = require("fs");
 const cloudinary = require("cloudinary").v2;
 const { StatusCodes } = require("http-status-codes");
@@ -10,6 +11,7 @@ const createPost = async (req, res) => {
    if (!caption && !image) {
       throw new BadRequestError("Expected a caption or image");
    }
+   const user = await User.findById(req.user.id);
    if (image) {
       const result = await cloudinary.uploader.upload(image.tempFilePath, {
          use_filename: true,
@@ -18,10 +20,19 @@ const createPost = async (req, res) => {
       });
       fs.unlinkSync(image.tempFilePath);
       const { secure_url: src } = result;
-      const post = await Post.create({ caption, image: { src }, createdBy: req.user.id });
+      const post = await Post.create({
+         caption,
+         image: { src },
+         createdBy: user._id,
+         userDetails: { name: user.name, image: user.profileImage },
+      });
       res.status(StatusCodes.CREATED).json({ post });
    } else {
-      const post = await Post.create({ caption, createdBy: req.user.id });
+      const post = await Post.create({
+         caption,
+         createdBy: user._id,
+         userDetails: { name: user.name, image: user.profileImage },
+      });
       res.status(StatusCodes.CREATED).json({ post });
    }
 };
@@ -29,7 +40,7 @@ const createPost = async (req, res) => {
 const getPosts = async (req, res) => {
    const { by, search } = req.query;
    if (by) {
-      const posts = await Post.find({ createdBy: by }).sort("-createdAt");
+      let posts = await Post.find({ createdBy: by }).sort("-createdAt");
       res.status(StatusCodes.OK).json({ posts });
    } else if (search) {
       const regex = new RegExp(search, "i");
@@ -97,7 +108,7 @@ const commentPost = async (req, res) => {
 
 const deletePost = async (req, res) => {
    const { id } = req.params;
-   const post = await Post.findOneAndDelete({ _id: id, createdBy: req.user.id });
+   const post = await Post.findOneAndDelete({ _id: id, createdBy: { id: req.user.id } });
    res.status(StatusCodes.OK).json(post);
 };
 

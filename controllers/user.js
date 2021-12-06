@@ -41,17 +41,20 @@ const updateUser = async (req, res) => {
       new: true,
       runValidators: true,
    }).select({ password: 0 });
+
    await Post.updateMany(
       { createdBy: req.user.id },
       { userDetails: { name: user.name, image: user.profileImage } }
    );
+
+   const posts = await Post.find({ createdBy: req.user.id });
 
    if (!user) {
       throw new NotFoundError(`No user exist with id ${id}`);
    }
    const token = user.createJWT();
 
-   res.status(StatusCodes.OK).json({ user, token });
+   res.status(StatusCodes.OK).json({ user, token, posts });
 };
 
 const updateDP = async (req, res) => {
@@ -71,14 +74,17 @@ const updateDP = async (req, res) => {
       { profileImage: src },
       { new: true, runValidators: true }
    ).select({ password: 0 });
+
    await Post.updateMany(
       { createdBy: req.user.id },
       { userDetails: { name: user.name, image: user.profileImage } }
    );
 
+   const posts = await Post.find({ createdBy: req.user.id });
+
    if (!user) throw new NotFoundError(`No user exist with id ${req.user.id}`);
 
-   res.status(StatusCodes.OK).json({ user });
+   res.status(StatusCodes.OK).json({ user, posts });
 };
 
 module.exports = { getUser, updateUser, updateDP, getUsers, getUsersByIDs };

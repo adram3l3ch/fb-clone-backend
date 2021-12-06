@@ -108,7 +108,7 @@ const commentPost = async (req, res) => {
 
 const deletePost = async (req, res) => {
    const { id } = req.params;
-   const post = await Post.findOneAndDelete({ _id: id, createdBy: { id: req.user.id } });
+   const post = await Post.findOneAndDelete({ _id: id, createdBy: req.user.id });
    res.status(StatusCodes.OK).json(post);
 };
 

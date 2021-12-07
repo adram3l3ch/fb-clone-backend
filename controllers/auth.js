@@ -3,7 +3,9 @@ const { StatusCodes } = require("http-status-codes");
 const { BadRequestError, NotFoundError, AuthenticationError } = require("../errors");
 
 const register = async (req, res) => {
-   const user = await User.create({ ...req.body });
+   let user = await User.findOne({ email: req.body.email });
+   if (user) throw new BadRequestError("User already exists");
+   user = await User.create({ ...req.body });
    const { _id: id, name, profileImage } = user;
    const token = user.createJWT();
    res.status(StatusCodes.CREATED).json({

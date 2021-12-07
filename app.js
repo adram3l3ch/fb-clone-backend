@@ -18,7 +18,11 @@ const xss = require("xss-clean");
 const app = express();
 const server = require("http").createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server);
+const io = new Server(server, {
+   cors: {
+      origin: "*",
+   },
+});
 const PORT = process.env.PORT || 5000;
 
 //cloudinary configuration
@@ -34,6 +38,8 @@ cloudinary.config({
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const postRouter = require("./routes/post");
+const chatRouter = require("./routes/chat");
+const messageRouter = require("./routes/message");
 
 //middlewares
 
@@ -45,21 +51,28 @@ app.use(xss());
 app.use(helmet());
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
-app.use(
-   cors({
-      allowedHeaders: ["authorization", "content-type"],
-      origin: "*",
-   })
-);
+app.use(cors());
 
 app.get("/", (req, res) => {
    res.status(200).json({ msg: "welcome" });
 });
 
-io.on("connection", (socket) => {
-   console.log("user connected");
-   socket.on("send message", (message) => {
-      socket.broadcast.emit("recieve message", message);
+// socket io
+
+let usersOnline = [];
+const addUser = (id, socketID) => {
+   usersOnline = usersOnline.filter(user => user.id !== id);
+   usersOnline.push({ id, socketID });
+};
+
+io.on("connection", socket => {
+   socket.on("add user", id => {
+      addUser(id, socket.id);
+   });
+   socket.on("send message", (message, to) => {
+      socket
+         .to(usersOnline.find(user => user.id === to)?.socketID)
+         .emit("recieve message", message);
    });
 });
 
@@ -68,6 +81,8 @@ io.on("connection", (socket) => {
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", authorizationMiddleware, userRouter);
 app.use("/api/v1/post", authorizationMiddleware, postRouter);
+app.use("/api/v1/chat", authorizationMiddleware, chatRouter);
+app.use("/api/v1/message", authorizationMiddleware, messageRouter);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);

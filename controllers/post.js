@@ -16,13 +16,13 @@ const createPost = async (req, res) => {
       const result = await cloudinary.uploader.upload(image.tempFilePath, {
          use_filename: true,
          folder: "fb-clone-posts",
-         quality: 50,
+         quality_analysis: true,
       });
       fs.unlinkSync(image.tempFilePath);
       const { secure_url: src } = result;
       const post = await Post.create({
          caption,
-         image: { src },
+         image: { src, publicID: result.public_id },
          createdBy: user._id,
          userDetails: { name: user.name, image: user.profileImage },
       });
@@ -109,6 +109,7 @@ const commentPost = async (req, res) => {
 const deletePost = async (req, res) => {
    const { id } = req.params;
    const post = await Post.findOneAndDelete({ _id: id, createdBy: req.user.id });
+   await cloudinary.uploader.destroy(post.image?.publicID);
    res.status(StatusCodes.OK).json(post);
 };
 

@@ -9,6 +9,9 @@ const PostSchema = new mongoose.Schema(
          src: {
             type: String,
          },
+         publicID: {
+            type: String,
+         },
       },
       createdBy: {
          type: mongoose.Types.ObjectId,

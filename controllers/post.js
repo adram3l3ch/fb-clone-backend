@@ -16,13 +16,12 @@ const createPost = async (req, res) => {
       const result = await cloudinary.uploader.upload(image.tempFilePath, {
          use_filename: true,
          folder: "fb-clone-posts",
-         quality_analysis: true,
       });
       fs.unlinkSync(image.tempFilePath);
-      const { secure_url: src } = result;
+      const { secure_url: src, public_id } = result;
       const post = await Post.create({
          caption,
-         image: { src, publicID: result.public_id },
+         image: { src, publicID: public_id },
          createdBy: user._id,
          userDetails: { name: user.name, image: user.profileImage },
       });

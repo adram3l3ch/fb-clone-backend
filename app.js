@@ -70,9 +70,7 @@ io.on("connection", socket => {
       addUser(id, socket.id);
    });
    socket.on("send message", (message, to) => {
-      socket
-         .to(usersOnline.find(user => user.id === to)?.socketID)
-         .emit("recieve message", message);
+      socket.to(usersOnline.find(user => user.id === to)?.socketID).emit("recieve message", message);
    });
 });
 

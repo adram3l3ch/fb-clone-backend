@@ -59,19 +59,17 @@ app.get("/", (req, res) => {
 
 // socket io
 
-let usersOnline = [];
-const addUser = (id, socketID) => {
-   usersOnline = usersOnline.filter(user => user.id !== id);
-   usersOnline.push({ id, socketID });
-};
+const { usersOnline, addUser, getUserID, getSocketID, removeUser } = require("./socket/users");
 
 io.on("connection", socket => {
+   socket.emit("usersOnline", usersOnline);
    socket.on("add user", id => {
       addUser(id, socket.id);
    });
    socket.on("send message", (message, to) => {
-      socket.to(usersOnline.find(user => user.id === to)?.socketID).emit("recieve message", message);
+      socket.to(getSocketID(to)).emit("receive message", message, getUserID(socket.id));
    });
+   socket.on("disconnect", () => removeUser(socket.id));
 });
 
 //routes

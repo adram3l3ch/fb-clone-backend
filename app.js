@@ -59,17 +59,18 @@ app.get("/", (req, res) => {
 
 // socket io
 
-const { usersOnline, addUser, getUserID, getSocketID, removeUser } = require("./socket/users");
+const { addUser, getUserID, getSocketID, removeUser } = require("./socket/users");
 
 io.on("connection", socket => {
-   socket.emit("usersOnline", usersOnline);
    socket.on("add user", id => {
-      addUser(id, socket.id);
+      io.emit("usersOnline", addUser(id, socket.id));
    });
    socket.on("send message", (message, to) => {
       socket.to(getSocketID(to)).emit("receive message", message, getUserID(socket.id));
    });
-   socket.on("disconnect", () => removeUser(socket.id));
+   socket.on("disconnect", () => {
+      io.emit("usersOnline", removeUser(socket.id));
+   });
 });
 
 //routes

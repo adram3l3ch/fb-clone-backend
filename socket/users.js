@@ -3,6 +3,7 @@ let usersOnline = [];
 const addUser = (id, socketID) => {
    usersOnline = usersOnline.filter(user => user.id !== id);
    usersOnline.push({ id, socketID });
+   return usersOnline;
 };
 const getSocketID = id => {
    return usersOnline.find(user => user.id === id)?.socketID;
@@ -14,6 +15,7 @@ const getUserID = sid => {
 
 const removeUser = sid => {
    usersOnline = usersOnline.filter(user => user.socketID !== sid);
+   return usersOnline;
 };
 
-module.exports = { usersOnline, addUser, getUserID, getSocketID, removeUser };
+module.exports = { addUser, getUserID, getSocketID, removeUser };

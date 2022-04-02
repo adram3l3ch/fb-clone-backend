@@ -16,7 +16,7 @@ const createChat = async (req, res) => {
 };
 
 const getChats = async (req, res) => {
-	const chat = await Chat.find({ members: { $in: [req.user.id] } });
+	const chat = await Chat.find({ members: { $in: [req.user.id] } }).sort({ createdAt: -1 });
 	res.status(StatusCodes.OK).json({ chat });
 };
 

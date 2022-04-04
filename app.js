@@ -59,13 +59,14 @@ app.get('/', (req, res) => {
 
 // socket io
 
-const { addUser, getUserID, getSocketID, removeUser } = require('./socket/users');
+const { addUser, getUserID, getSocketID, removeUser, createMessage } = require('./socket/users');
 
 io.on('connection', socket => {
 	socket.on('add user', id => {
 		io.emit('usersOnline', addUser(id, socket.id));
 	});
-	socket.on('send message', (message, to) => {
+	socket.on('send message', async (message, to, chatID, id) => {
+		await createMessage(chatID, id, message);
 		socket.to(getSocketID(to)).emit('receive message', message, getUserID(socket.id));
 	});
 	socket.on('disconnect', () => {

@@ -108,7 +108,7 @@ const commentPost = async (req, res) => {
 const deletePost = async (req, res) => {
 	const { id } = req.params;
 	const post = await Post.findOneAndDelete({ _id: id, createdBy: req.user.id });
-	post.image && (await cloudinary.uploader.destroy(post.image.publicID));
+	post.image.publicID && (await cloudinary.uploader.destroy(post.image.publicID));
 	res.status(StatusCodes.OK).json(post);
 };
 

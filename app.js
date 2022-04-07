@@ -62,9 +62,7 @@ app.get('/', (req, res) => {
 const { addUser, getUserID, getSocketID, removeUser, createMessage } = require('./socket/users');
 
 io.on('connection', socket => {
-	socket.on('add user', id => {
-		io.emit('usersOnline', addUser(id, socket.id));
-	});
+	io.emit('usersOnline', addUser(socket.handshake.query.id, socket.id));
 	socket.on('send message', async (message, to, chatID, id) => {
 		await createMessage(chatID, id, message);
 		socket.to(getSocketID(to)).emit('receive message', message, getUserID(socket.id));

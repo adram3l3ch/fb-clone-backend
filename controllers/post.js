@@ -30,9 +30,9 @@ const createPost = async (req, res) => {
 };
 
 const getPosts = async (req, res) => {
-	const { by, search, page = 1 } = req.query;
+	const { by, search, page = '1' } = req.query;
 	const limitCount = search ? Infinity : 10;
-	const skipCount = (page - 1) * limitCount;
+	const skipCount = (+page - 1) * limitCount;
 	const query = {};
 	if (search) query.caption = new RegExp(search, 'i');
 	if (by) query.createdBy = by;

@@ -7,10 +7,9 @@ const { StatusCodes } = require('http-status-codes');
 
 const createPost = async (req, res) => {
 	const { caption } = req.body;
-	const image = req.files?.image;
-	if (!caption && !image) {
-		throw new BadRequestError('Expected a caption or image');
-	}
+	let image = req.files?.image || '';
+	if (!caption && !image) throw new BadRequestError('Expected a caption or image');
+
 	const user = await User.findById(req.user.id);
 	if (image) {
 		const result = await cloudinary.uploader.upload(image.tempFilePath, {
@@ -19,36 +18,27 @@ const createPost = async (req, res) => {
 		});
 		fs.unlinkSync(image.tempFilePath);
 		const { secure_url: src, public_id } = result;
-		const post = await Post.create({
-			caption,
-			image: { src, publicID: public_id },
-			createdBy: user._id,
-			userDetails: { name: user.name, image: user.profileImage },
-		});
-		res.status(StatusCodes.CREATED).json({ post });
-	} else {
-		const post = await Post.create({
-			caption,
-			createdBy: user._id,
-			userDetails: { name: user.name, image: user.profileImage },
-		});
-		res.status(StatusCodes.CREATED).json({ post });
+		image = { src, publicID: public_id };
 	}
+	const post = await Post.create({
+		caption,
+		image,
+		createdBy: user._id,
+		userDetails: { name: user.name, image: user.profileImage },
+	});
+	res.status(StatusCodes.CREATED).json({ post });
 };
 
 const getPosts = async (req, res) => {
-	const { by, search } = req.query;
-	if (by) {
-		let posts = await Post.find({ createdBy: by }).sort('-createdAt');
-		res.status(StatusCodes.OK).json({ posts });
-	} else if (search) {
-		const regex = new RegExp(search, 'i');
-		const posts = await Post.find({ caption: regex }).sort('-createdAt');
-		res.status(StatusCodes.OK).json({ posts });
-	} else {
-		const posts = await Post.find().sort('-createdAt');
-		res.status(StatusCodes.OK).json({ posts });
-	}
+	const { by, search, page = 1 } = req.query;
+	const limitCount = search ? Infinity : 10;
+	const skipCount = (page - 1) * limitCount;
+	const query = {};
+	if (search) query.caption = new RegExp(search, 'i');
+	if (by) query.createdBy = by;
+
+	const posts = await Post.find(query).sort('-createdAt').limit(limitCount).skip(skipCount);
+	res.status(StatusCodes.OK).json({ posts });
 };
 
 const getPost = async (req, res) => {
@@ -60,35 +50,20 @@ const getPost = async (req, res) => {
 
 const likePost = async (req, res) => {
 	const { add } = req.query;
-	if (add === 'true') {
-		const posts = await Post.findById(req.body.id);
-		if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
+	let posts = await Post.findById(req.body.id);
+	if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
+	if (add === 'true' && posts.likes.includes(req.user.id))
+		throw new BadRequestError('Already liked');
+	const action = add === 'true' ? '$push' : '$pull';
 
-		if (posts.likes.includes(req.user.id)) {
-			throw new BadRequestError('Already liked');
-		} else {
-			const posts = await Post.findByIdAndUpdate(
-				req.body.id,
-				{
-					$push: { likes: req.user.id },
-				},
-				{ new: true, runValidators: true }
-			);
-			res.status(StatusCodes.OK).json({ posts });
-		}
-	} else if (add === 'false') {
-		const posts = await Post.findByIdAndUpdate(
-			req.body.id,
-			{
-				$pull: { likes: req.user.id },
-			},
-			{ new: true, runValidators: true }
-		);
-		if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
-		res.status(StatusCodes.OK).json({ posts });
-	} else {
-		throw new BadRequestError('Invalid url');
-	}
+	posts = await Post.findByIdAndUpdate(
+		req.body.id,
+		{
+			[action]: { likes: req.user.id },
+		},
+		{ new: true, runValidators: true }
+	);
+	res.status(StatusCodes.OK).json({ posts });
 };
 
 const commentPost = async (req, res) => {
@@ -101,7 +76,6 @@ const commentPost = async (req, res) => {
 	);
 
 	if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
-
 	res.status(StatusCodes.OK).json({ posts });
 };
 

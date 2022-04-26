@@ -9,7 +9,7 @@
    },
    "keywords": [],
    "author": "",
-   "license": "ISC",
+   "license": "BSD-3-Clause",
    "dependencies": {
       "axios": "^0.26.1",
       "bcryptjs": "^2.4.3",

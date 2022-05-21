@@ -20,7 +20,7 @@ const server = require('http').createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(server, {
 	cors: {
-		origin: '*',
+		origin: 'https://adramelech-social-media-app.netlify.app/',
 	},
 });
 const PORT = process.env.PORT || 5000;

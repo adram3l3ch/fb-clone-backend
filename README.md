@@ -2,11 +2,6 @@
 
 It is a Social media app built using mern stack. You can create an account, create posts, like and comment on posts.
 
-### Screenshot
-
-![](./Design/Desktop-2.png)
-![](./Design/Desktop-1.png)
-
 ### Links
 
 -  Solution URL: [Frontend](https://github.com/adram3l3ch/fb-clone-frontend)

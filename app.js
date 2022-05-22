@@ -51,7 +51,7 @@ app.use(xss());
 app.use(helmet());
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
-app.use(cors({origin: 'https://adramelech-social-media-app.netlify.app/'}));
+app.use(cors({origin: 'https://adramelech-social-media-app.netlify.app/',allowedHeaders:"Content-Type,Authorization,withCredentials",}));
 
 app.get('/', (req, res) => {
 	res.status(200).json({ msg: 'welcome' });

@@ -19,7 +19,9 @@ const app = express();
 const server = require("http").createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
-	cors: {},
+	cors: {
+		origin: "https://adramelech-social-media-app.netlify.app",
+	},
 });
 const PORT = process.env.PORT || 5000;
 
@@ -49,7 +51,7 @@ app.use(xss());
 app.use(helmet());
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
-app.use(cors());
+app.use(cors({ origin: "https://adramelech-social-media-app.netlify.app" }));
 
 app.get("/", (req, res) => {
 	res.status(200).json({ msg: "welcome" });

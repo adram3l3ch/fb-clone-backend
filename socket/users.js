@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
+const jwt = require("jsonwebtoken");
+const axios = require("axios");
 
 // const URL = 'http://localhost:5000/api/v1/message';
-const URL = 'https://adramelech-fb-clone.herokuapp.com/api/v1/message';
+const URL = "https://adramelech-fb-clone.herokuapp.com/api/v1/message";
 
 let usersOnline = [];
 
@@ -25,11 +25,15 @@ const removeUser = sid => {
 };
 
 const createMessage = async (chatID, id, message) => {
-	const token = jwt.sign({ id, name: 'test', profileImage: '' }, process.env.JWT_SECRET, {
-		expiresIn: process.env.JWT_LIFETIME,
-	});
+	const token = jwt.sign(
+		{ id, name: "test", profileImage: "" },
+		process.env.JWT_SECRET,
+		{
+			expiresIn: process.env.JWT_LIFETIME,
+		}
+	);
 	await axios.post(
-		`${URL}/${chatID}`,
+		`/${chatID}`,
 		{ text: message },
 		{
 			headers: {

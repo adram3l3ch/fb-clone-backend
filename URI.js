@@ -5,7 +5,7 @@ const clientURL = isDevelopmentMode
 	: "https://adramelech-social-media-app.netlify.app";
 
 const serverURL = isDevelopmentMode
-	? "http://localhost:5000"
+	? "http://localhost:5000/api/v1"
 	: "https://adram3l3ch-fb-clone.herokuapp.com/api/v1";
 
 module.exports = { clientURL, serverURL };

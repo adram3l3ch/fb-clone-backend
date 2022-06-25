@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 
-// const URL = 'http://localhost:5000/api/v1/message';
-const URL = "https://adram3l3ch-fb-clone.herokuapp.com/api/v1/message";
+const { serverURL } = require("../URI");
 
 let usersOnline = [];
 
@@ -33,7 +32,7 @@ const createMessage = async (chatID, id, message) => {
 		}
 	);
 	await axios.post(
-		`${URL}/${chatID}`,
+		`${serverURL}/message/${chatID}`,
 		{ text: message },
 		{
 			headers: {

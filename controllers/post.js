@@ -9,18 +9,19 @@ const options = { new: true, runValidators: true };
 
 const createPost = async (req, res) => {
 	const { caption } = req.body;
-	const { name, profileImage, id } = req.user;
+	const { id } = req.user;
 	let image = req.files?.image || "";
 	if (!caption && !image) throw new BadRequestError("Expected a caption or image");
 	if (image) {
 		const { secure_url: src, public_id } = await uploadImage(image);
 		image = { src, publicID: public_id };
 	}
+	const user = await User.findById(id);
 	const post = await Post.create({
 		caption,
 		image,
 		createdBy: id,
-		userDetails: { name, image: profileImage },
+		userDetails: { name: user.name, image: user.profileImage },
 	});
 	res.status(StatusCodes.CREATED).json({ post });
 };

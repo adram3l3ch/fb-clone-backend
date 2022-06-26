@@ -19,9 +19,7 @@ const xss = require("xss-clean");
 const app = express();
 const server = require("http").createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server, {
-	cors: { origin: clientURL },
-});
+const io = new Server(server, { cors: { origin: clientURL } });
 const PORT = process.env.PORT || 5000;
 
 //cloudinary configuration
@@ -53,26 +51,19 @@ app.use(fileUpload({ useTempFiles: true }));
 app.use(cors({ origin: clientURL }));
 
 app.get("/", (req, res) => {
-	res.status(200).json({ msg: "welcome" });
+	res.status(200).json({ message: "welcome" });
 });
 
 // socket io
 
-const {
-	addUser,
-	getUserID,
-	getSocketID,
-	removeUser,
-	createMessage,
-} = require("./socket/users");
+const { addUser, getUserID, getSocketID, removeUser } = require("./socket/users");
+const { createMessage } = require("./controllers/message");
 
 io.on("connection", socket => {
 	io.emit("usersOnline", addUser(socket.handshake.query.id, socket.id));
-	socket.on("send message", async (message, to, chatID, id) => {
-		await createMessage(chatID, id, message);
-		socket
-			.to(getSocketID(to))
-			.emit("receive message", message, getUserID(socket.id));
+	socket.on("send message", async (message, to, chatId, id) => {
+		await createMessage({ chatId, id, message });
+		socket.to(getSocketID(to)).emit("receive message", message, getUserID(socket.id));
 	});
 	socket.on("disconnect", () => {
 		io.emit("usersOnline", removeUser(socket.id));
@@ -82,9 +73,9 @@ io.on("connection", socket => {
 //routes
 
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/user", authorizationMiddleware, userRouter);
-app.use("/api/v1/post", authorizationMiddleware, postRouter);
-app.use("/api/v1/chat", authorizationMiddleware, chatRouter);
+app.use("/api/v1/users", authorizationMiddleware, userRouter);
+app.use("/api/v1/posts", authorizationMiddleware, postRouter);
+app.use("/api/v1/chats", authorizationMiddleware, chatRouter);
 app.use("/api/v1/message", authorizationMiddleware, messageRouter);
 
 app.use(errorHandlerMiddleware);
@@ -93,9 +84,7 @@ app.use(notFoundMiddleware);
 const start = async () => {
 	try {
 		await connectDB(process.env.MONGO_URI);
-		server.listen(PORT, () => {
-			console.log(`Server is listening on port ${PORT}`);
-		});
+		server.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
 	} catch (error) {
 		console.log(error);
 	}

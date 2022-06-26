@@ -1,10 +1,6 @@
 const User = require("../models/User");
 const { StatusCodes } = require("http-status-codes");
-const {
-	BadRequestError,
-	NotFoundError,
-	AuthenticationError,
-} = require("../errors");
+const { BadRequestError, NotFoundError, AuthenticationError } = require("../errors");
 
 const register = async (req, res) => {
 	let user = await User.findOne({ email: req.body.email });
@@ -21,25 +17,15 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-	if (!req.body.email || !req.body.password) {
-		throw new BadRequestError("Please provide email and password");
-	}
-
+	const { email, password } = req.body;
+	if (!email || !password) throw new BadRequestError("Please provide email and password");
 	const user = await User.findOne({ email: req.body.email });
-
-	if (!user) {
-		throw new NotFoundError("Invalid credentials");
-	}
-
+	if (!user) throw new NotFoundError("User doesn't exist");
 	const isPasswordCorrect = await user.comparePassword(req.body.password);
-
-	if (!isPasswordCorrect) {
-		throw new AuthenticationError("It's Ezio's password!! Enter yours");
-	}
+	if (!isPasswordCorrect) throw new AuthenticationError("It's Ezio's password!! Enter yours");
 
 	const { _id: id, name, profileImage } = user;
 	const token = user.createJWT();
-
 	res.status(StatusCodes.OK).json({
 		id,
 		token,

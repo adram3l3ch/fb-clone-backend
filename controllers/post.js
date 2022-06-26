@@ -1,127 +1,87 @@
 const { BadRequestError, NotFoundError } = require("../errors");
+const { StatusCodes } = require("http-status-codes");
 const Post = require("../models/Post");
 const User = require("../models/User");
-const fs = require("fs");
 const cloudinary = require("cloudinary").v2;
-const { StatusCodes } = require("http-status-codes");
+const uploadImage = require("../utils/uploadImage");
+
+const options = { new: true, runValidators: true };
 
 const createPost = async (req, res) => {
 	const { caption } = req.body;
+	const { name, profileImage, id } = req.user;
 	let image = req.files?.image || "";
-	if (!caption && !image)
-		throw new BadRequestError("Expected a caption or image");
-
-	const user = await User.findById(req.user.id);
+	if (!caption && !image) throw new BadRequestError("Expected a caption or image");
 	if (image) {
-		const result = await cloudinary.uploader.upload(image.tempFilePath, {
-			use_filename: true,
-			folder: "fb-clone-posts",
-		});
-		fs.unlinkSync(image.tempFilePath);
-		const { secure_url: src, public_id } = result;
+		const { secure_url: src, public_id } = await uploadImage(image);
 		image = { src, publicID: public_id };
 	}
 	const post = await Post.create({
 		caption,
 		image,
-		createdBy: user._id,
-		userDetails: { name: user.name, image: user.profileImage },
+		createdBy: id,
+		userDetails: { name, image: profileImage },
 	});
 	res.status(StatusCodes.CREATED).json({ post });
 };
 
 const getPosts = async (req, res) => {
-	const { by, search, page = "1" } = req.query;
-	const limitCount = search ? Infinity : 10;
-	const skipCount = (+page - 1) * limitCount;
-	const query = {};
-	if (search) query.caption = new RegExp(search, "i");
-	if (by) query.createdBy = by;
-
-	const posts = await Post.find(query)
-		.sort("-createdAt")
-		.limit(limitCount)
-		.skip(skipCount);
-	res.status(StatusCodes.OK).json({ posts });
-};
-
-const getPost = async (req, res) => {
-	const { id } = req.params;
-	const posts = await Post.findById(id);
-	if (!posts) throw new NotFoundError(`No post with id${id}`);
-	res.status(StatusCodes.OK).json({ posts });
+	const { id, query = "", page = "1", userId = "" } = req.query;
+	if (id) {
+		const post = await Post.findById(id);
+		if (!post) throw new NotFoundError(`No post with id${id}`);
+		res.status(StatusCodes.OK).json({ post });
+	} else {
+		const limitCount = query ? Infinity : 10;
+		const skipCount = (+page - 1) * limitCount;
+		const _query = {};
+		if (query) _query.caption = new RegExp(query, "i");
+		if (userId) _query.createdBy = userId;
+		const posts = await Post.find(_query).sort("-createdAt").limit(limitCount).skip(skipCount);
+		res.status(StatusCodes.OK).json({ posts, page });
+	}
 };
 
 const likePost = async (req, res) => {
-	const { add } = req.query;
-	let posts = await Post.findById(req.body.id);
-	if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
-	if (add === "true" && posts.likes.includes(req.user.id))
-		throw new BadRequestError("Already liked");
-	const action = add === "true" ? "$push" : "$pull";
-
-	posts = await Post.findByIdAndUpdate(
-		req.body.id,
-		{
-			[action]: { likes: req.user.id },
-		},
-		{ new: true, runValidators: true }
-	);
-	res.status(StatusCodes.OK).json({ posts });
+	const { add, id } = req.body;
+	const { id: userId } = req.user;
+	const action = add === true ? "$push" : "$pull";
+	const post = await Post.findByIdAndUpdate(id, { [action]: { likes: userId } }, options);
+	if (!post) throw new NotFoundError(`No post with id ${id}`);
+	res.status(StatusCodes.OK).json({ post });
 };
 
 const commentPost = async (req, res) => {
-	const posts = await Post.findByIdAndUpdate(
-		req.body.id,
-		{
-			$push: {
-				comments: { commentedBy: req.user.id, comment: req.body.comment },
-			},
-		},
-		{ new: true, runValidators: true }
-	);
-
-	if (!posts) throw new NotFoundError(`No post with id${req.body.id}`);
-	res.status(StatusCodes.OK).json({ posts });
+	const { id, comment } = req.body;
+	const { id: commentedBy } = req.user;
+	const post = await Post.findByIdAndUpdate(id, { $push: { comments: { commentedBy, comment } } }, options);
+	if (!post) throw new NotFoundError(`No post with id ${id}`);
+	res.status(StatusCodes.OK).json({ post });
 };
 
 const deletePost = async (req, res) => {
 	const { id } = req.params;
 	const post = await Post.findOneAndDelete({ _id: id, createdBy: req.user.id });
-	post.image.publicID &&
-		(await cloudinary.uploader.destroy(post.image.publicID));
-	res.status(StatusCodes.OK).json(post);
+	post.image.publicID && (await cloudinary.uploader.destroy(post.image.publicID));
+	res.status(StatusCodes.OK).json({ post });
 };
 
 const updatePost = async (req, res) => {
 	const { caption } = req.body;
-	let image = req.files?.image || "";
 	const { id } = req.params;
-
-	if (!caption && !image)
-		throw new BadRequestError("Expected a caption or image");
+	const { id: createdBy } = req.user;
+	let image = req.files?.image || "";
+	if (!caption && !image) throw new BadRequestError("Expected a caption or image");
 	if (image) {
-		const result = await cloudinary.uploader.upload(image.tempFilePath, {
-			use_filename: true,
-			folder: "fb-clone-posts",
-		});
-		fs.unlinkSync(image.tempFilePath);
-		const { secure_url: src, public_id } = result;
+		const { secure_url: src, public_id } = await uploadImage(image);
 		image = { src, publicID: public_id };
 		const post = await Post.findOne({ _id: id, createdBy: req.user.id });
-		post.image.publicID &&
-			image &&
-			(await cloudinary.uploader.destroy(post.image.publicID));
+		post.image.publicID && image && (await cloudinary.uploader.destroy(post.image.publicID));
 	}
 	const updatedData = { caption };
 	if (image) updatedData.image = image;
-	const post = await Post.findOneAndUpdate(
-		{ _id: id, createdBy: req.user.id },
-		updatedData,
-		{ new: true }
-	);
-
-	res.status(StatusCodes.OK).json(post);
+	const post = await Post.findOneAndUpdate({ _id: id, createdBy }, updatedData, options);
+	res.status(StatusCodes.OK).json({ post });
 };
 
 module.exports = {
@@ -129,7 +89,6 @@ module.exports = {
 	getPosts,
 	likePost,
 	commentPost,
-	getPost,
 	deletePost,
 	updatePost,
 };

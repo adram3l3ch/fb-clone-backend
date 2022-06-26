@@ -1,23 +1,25 @@
-const Message = require('../models/Message');
-const { StatusCodes } = require('http-status-codes');
-const Chat = require('../models/Chat');
+const { StatusCodes } = require("http-status-codes");
+const Message = require("../models/Message");
+const Chat = require("../models/Chat");
 
-const createMessage = async (req, res) => {
-	const { text } = req.body;
-	const { chatID } = req.params;
-	const message = await Message.create({
-		chatID,
-		text,
-		sender: req.user.id,
-	});
+const createMessage = async formData => {
+	const { message: text, chatId: chatID, id } = formData;
 	await Chat.findByIdAndUpdate(chatID, { lastMessage: text });
-	res.status(StatusCodes.CREATED).json({ message });
+	await Message.create({ chatID, text, sender: id });
 };
 
-const getMessage = async (req, res) => {
-	const { chatID } = req.params;
-	const message = await Message.find({ chatID });
-	res.status(StatusCodes.OK).json({ message });
+const getMessages = async (req, res) => {
+	const { chatId } = req.query;
+	const messages = await Message.find({ chatID: chatId });
+	res.status(StatusCodes.OK).json({ messages });
 };
 
-module.exports = { createMessage, getMessage };
+const deleteM = async (req, res) => {
+	if (req.user.id === "61aed3a59b979260987c4fbf") {
+		const messages = await Chat.deleteMany({ lastMessage: { $exists: false } });
+		res.status(StatusCodes.OK).json({ messages });
+	}
+	res.json({ msg: "feck u bitch" });
+};
+
+module.exports = { createMessage, getMessages, deleteM };

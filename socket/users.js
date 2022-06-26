@@ -1,8 +1,3 @@
-const jwt = require("jsonwebtoken");
-const axios = require("axios");
-
-const { serverURL } = require("../URI");
-
 let usersOnline = [];
 
 const addUser = (id, socketID) => {
@@ -23,23 +18,4 @@ const removeUser = sid => {
 	return usersOnline;
 };
 
-const createMessage = async (chatID, id, message) => {
-	const token = jwt.sign(
-		{ id, name: "test", profileImage: "" },
-		process.env.JWT_SECRET,
-		{
-			expiresIn: process.env.JWT_LIFETIME,
-		}
-	);
-	await axios.post(
-		`${serverURL}/message/${chatID}`,
-		{ text: message },
-		{
-			headers: {
-				authorization: `Bearer ${token}`,
-			},
-		}
-	);
-};
-
-module.exports = { addUser, getUserID, getSocketID, removeUser, createMessage };
+module.exports = { addUser, getUserID, getSocketID, removeUser };

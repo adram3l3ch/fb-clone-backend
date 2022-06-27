@@ -76,7 +76,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", authorizationMiddleware, userRouter);
 app.use("/api/v1/posts", authorizationMiddleware, postRouter);
 app.use("/api/v1/chats", authorizationMiddleware, chatRouter);
-app.use("/api/v1/message", authorizationMiddleware, messageRouter);
+app.use("/api/v1/messages", authorizationMiddleware, messageRouter);
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);

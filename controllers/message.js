@@ -14,6 +14,13 @@ const getMessages = async (req, res) => {
 	res.status(StatusCodes.OK).json({ messages });
 };
 
+const deleteMessages = async (req, res) => {
+	const { chatId } = req.body;
+	const message = await Message.deleteMany({ chatID: chatId });
+	await Chat.findByIdAndUpdate(chatId, { lastMessage: "" });
+	res.status(StatusCodes.OK).json({ message });
+};
+
 const deleteM = async (req, res) => {
 	if (req.user.id === "61aed3a59b979260987c4fbf") {
 		const messages = await Chat.deleteMany({ lastMessage: { $exists: false } });
@@ -22,4 +29,4 @@ const deleteM = async (req, res) => {
 	res.json({ msg: "feck u bitch" });
 };
 
-module.exports = { createMessage, getMessages, deleteM };
+module.exports = { createMessage, getMessages, deleteM, deleteMessages };

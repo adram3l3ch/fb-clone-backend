@@ -25,6 +25,7 @@ const getChats = async (req, res) => {
 
 const deleteChat = async (req, res) => {
 	const { chatId: chatID } = req.body;
+	await Chat.findByIdAndDelete(chatID);
 	const message = await Message.deleteMany({ chatID });
 	res.status(StatusCodes.OK).json({ message });
 };

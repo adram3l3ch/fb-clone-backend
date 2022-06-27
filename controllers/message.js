@@ -1,12 +1,11 @@
 const { StatusCodes } = require("http-status-codes");
 const Message = require("../models/Message");
 const Chat = require("../models/Chat");
-const BadRequestError = require("../errors/bad-request");
 
 const createMessage = async formData => {
 	const { message: text, chatId: chatID, id } = formData;
 	const chat = await Chat.findByIdAndUpdate(chatID, { lastMessage: text });
-	if (!chat) throw new BadRequestError("Chat doesn't exist");
+	if (!chat) return;
 	await Message.create({ chatID, text, sender: id });
 };
 

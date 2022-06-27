@@ -1,5 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
+const { NotFoundError } = require("../errors");
 const Chat = require("../models/Chat");
+const Message = require("../models/Message");
 
 const createChat = async (req, res) => {
 	const { partnerId } = req.body;
@@ -22,4 +24,12 @@ const getChats = async (req, res) => {
 	res.status(StatusCodes.OK).json({ chats });
 };
 
-module.exports = { createChat, getChats };
+const deleteChat = async (req, res) => {
+	const { chatId: chatID } = req.body;
+	const chat = await Chat.findByIdAndDelete(chatID);
+	if (!chat) throw new NotFoundError("Chat doesn't exist");
+	const message = await Message.deleteMany({ chatID });
+	res.status(StatusCodes.OK).json({ message });
+};
+
+module.exports = { createChat, getChats, deleteChat };

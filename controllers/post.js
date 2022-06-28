@@ -39,7 +39,7 @@ const getPosts = async (req, res) => {
 		if (query) _query.caption = new RegExp(query, "i");
 		if (userId) _query.createdBy = userId;
 		const posts = await Post.find(_query).sort("-createdAt").limit(limitCount).skip(skipCount);
-		res.status(StatusCodes.OK).json({ posts, page });
+		res.status(StatusCodes.OK).json({ posts, page: +page });
 	}
 };
 

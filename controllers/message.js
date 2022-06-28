@@ -15,11 +15,9 @@ const getMessages = async (req, res) => {
 	res.status(StatusCodes.OK).json({ messages });
 };
 
-const deleteMessages = async (req, res) => {
-	const { chatId } = req.body;
-	const message = await Message.deleteMany({ chatID: chatId });
-	await Chat.findByIdAndUpdate(chatId, { lastMessage: "" });
-	res.status(StatusCodes.OK).json({ message });
+const deleteMessages = async ({ chatID }) => {
+	await Message.deleteMany({ chatID });
+	await Chat.findByIdAndUpdate(chatID, { lastMessage: "" });
 };
 
 const deleteM = async (req, res) => {

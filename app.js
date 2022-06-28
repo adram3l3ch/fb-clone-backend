@@ -57,13 +57,22 @@ app.get("/", (req, res) => {
 // socket io
 
 const { addUser, getUserID, getSocketID, removeUser } = require("./socket/users");
-const { createMessage } = require("./controllers/message");
+const { createMessage, deleteMessages } = require("./controllers/message");
+const { deleteChat } = require("./controllers/chat");
 
 io.on("connection", socket => {
 	io.emit("usersOnline", addUser(socket.handshake.query.id, socket.id));
 	socket.on("send message", async (message, to, chatId, id) => {
 		await createMessage({ chatId, id, message });
 		socket.to(getSocketID(to)).emit("receive message", message, getUserID(socket.id));
+	});
+	socket.on("delete chat", async (chatID, to) => {
+		await deleteChat({ chatID });
+		socket.to(getSocketID(to)).emit("delete chat", chatID);
+	});
+	socket.on("clear chat", async (chatID, to) => {
+		await deleteMessages({ chatID });
+		socket.to(getSocketID(to)).emit("clear chat", chatID);
 	});
 	socket.on("disconnect", () => {
 		io.emit("usersOnline", removeUser(socket.id));

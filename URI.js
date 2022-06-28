@@ -2,10 +2,6 @@ const isDevelopmentMode = process.env.MODE === "DEV";
 
 const clientURL = isDevelopmentMode
 	? "http://localhost:3000"
-	: "https://adramelech-social-media-app.netlify.app";
+	: ["https://adramelech-social-media-app.netlify.app", "https://fb-clone-frontend.vercel.app/"];
 
-const serverURL = isDevelopmentMode
-	? "http://localhost:5000/api/v1"
-	: "https://adram3l3ch-fb-clone.herokuapp.com/api/v1";
-
-module.exports = { clientURL, serverURL };
+module.exports = { clientURL };

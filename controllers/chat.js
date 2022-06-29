@@ -23,9 +23,4 @@ const getChats = async (req, res) => {
 	res.status(StatusCodes.OK).json({ chats });
 };
 
-const deleteChat = async ({ chatID }) => {
-	await Chat.findByIdAndDelete(chatID);
-	await Message.deleteMany({ chatID });
-};
-
 module.exports = { createChat, getChats, deleteChat };

@@ -14,7 +14,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const xss = require("xss-clean");
 
-//app initialisation
+//app initialization
 
 const app = express();
 const server = require("http").createServer(app);
@@ -38,7 +38,7 @@ const postRouter = require("./routes/post");
 const chatRouter = require("./routes/chat");
 const messageRouter = require("./routes/message");
 
-//middlewares
+//middle wares
 
 const errorHandlerMiddleware = require("./middleware/error-handler");
 const authorizationMiddleware = require("./middleware/authorization");
@@ -57,8 +57,7 @@ app.get("/", (req, res) => {
 // socket io
 
 const { addUser, getUserID, getSocketID, removeUser } = require("./socket/users");
-const { createMessage, deleteMessages } = require("./controllers/message");
-const { deleteChat } = require("./controllers/chat");
+const { createMessage, deleteMessages, deleteChat } = require("./utils/messageSocketEvents");
 
 io.on("connection", socket => {
 	io.emit("usersOnline", addUser(socket.handshake.query.id, socket.id));

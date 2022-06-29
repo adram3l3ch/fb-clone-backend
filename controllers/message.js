@@ -16,4 +16,4 @@ const deleteM = async (req, res) => {
 	res.json({ msg: "feck u bitch" });
 };
 
-module.exports = { createMessage, getMessages, deleteM, deleteMessages };
+module.exports = { getMessages, deleteM };

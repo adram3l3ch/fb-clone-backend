@@ -23,4 +23,4 @@ const getChats = async (req, res) => {
 	res.status(StatusCodes.OK).json({ chats });
 };
 
-module.exports = { createChat, getChats, deleteChat };
+module.exports = { createChat, getChats };

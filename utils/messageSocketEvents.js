@@ -1,3 +1,6 @@
+const Chat = require("../models/Chat");
+const Message = require("../models/Message");
+
 const createMessage = async formData => {
 	const { message: text, chatId: chatID, id } = formData;
 	const chat = await Chat.findByIdAndUpdate(chatID, { lastMessage: text });

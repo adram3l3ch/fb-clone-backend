@@ -62,16 +62,16 @@ const { createMessage, deleteMessages, deleteChat } = require("./utils/messageSo
 io.on("connection", socket => {
 	io.emit("usersOnline", addUser(socket.handshake.query.id, socket.id));
 	socket.on("send message", async (message, to, chatId, id) => {
-		await createMessage({ chatId, id, message });
 		socket.to(getSocketID(to)).emit("receive message", message, getUserID(socket.id));
+		await createMessage({ chatId, id, message });
 	});
 	socket.on("delete chat", async (chatID, to) => {
-		await deleteChat({ chatID });
 		socket.to(getSocketID(to)).emit("delete chat", chatID);
+		await deleteChat({ chatID });
 	});
 	socket.on("clear chat", async (chatID, to) => {
-		await deleteMessages({ chatID });
 		socket.to(getSocketID(to)).emit("clear chat", chatID);
+		await deleteMessages({ chatID });
 	});
 	socket.on("disconnect", () => {
 		io.emit("usersOnline", removeUser(socket.id));

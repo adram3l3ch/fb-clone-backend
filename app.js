@@ -81,8 +81,8 @@ io.on("connection", socket => {
 //routes
 
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/users", authorizationMiddleware, userRouter);
-app.use("/api/v1/posts", authorizationMiddleware, postRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/chats", authorizationMiddleware, chatRouter);
 app.use("/api/v1/messages", authorizationMiddleware, messageRouter);
 

@@ -53,37 +53,70 @@ const likePost = async (req, res) => {
 };
 
 const commentPost = async (req, res) => {
-	const { id, comment } = req.body;
+	const { id, comment, commentId, replyTo } = req.body;
 	const { id: commentedBy } = req.user;
-	const post = await Post.findByIdAndUpdate(id, { $push: { comments: { commentedBy, comment } } }, options);
+	let post;
+	if (commentId) {
+		post = await Post.findOneAndUpdate(
+			{ _id: id, "comments._id": commentId },
+			{ $push: { "comments.$.replies": { commentedBy, comment, replyTo, commentId } } },
+			options
+		);
+	} else {
+		post = await Post.findByIdAndUpdate(id, { $push: { comments: { commentedBy, comment } } }, options);
+	}
 	if (!post) throw new NotFoundError(`No post with id ${id}`);
 	res.status(StatusCodes.OK).json({ post });
 };
 
 const deleteComment = async (req, res) => {
-	const { postId, commentId } = req.query;
+	const { postId, commentId, replyId } = req.query;
 	const { id: commentedBy } = req.user;
-	const post = await Post.findByIdAndUpdate(
-		postId,
-		{
-			$pull: { comments: { commentedBy, _id: commentId } },
-		},
-		options
-	);
-	if (!post) throw new NotFoundError(`No post with id ${id}`);
+	let post;
+	if (replyId) {
+		post = await Post.findOneAndUpdate(
+			{ _id: postId, "comments._id": commentId },
+			{
+				$pull: { "comments.$.replies": { _id: replyId } },
+			},
+			options
+		);
+	} else {
+		post = await Post.findByIdAndUpdate(
+			postId,
+			{
+				$pull: { comments: { commentedBy, _id: commentId } },
+			},
+			options
+		);
+	}
+	if (!post) throw new NotFoundError(`No post with id ${postId}`);
 	res.status(StatusCodes.OK).json({ post });
 };
 
 const editComment = async (req, res) => {
-	const { postId, commentId, comment } = req.body;
-	await Post.findOneAndUpdate(
-		{ _id: postId, "comments._id": commentId },
-		{
-			$set: { "comments.$.comment": comment },
-		},
-		options
-	);
-	const post = await Post.findById(postId);
+	const { postId, commentId, comment, replyId } = req.body;
+	let post;
+	if (replyId) {
+		post = await Post.findById(postId);
+		const commentIndex = post.comments.findIndex(comment => comment._id == commentId);
+		const replyIndex = post.comments[commentIndex].replies.findIndex(reply => reply._id == replyId);
+		post = await Post.findByIdAndUpdate(
+			postId,
+			{
+				$set: { [`comments.${commentIndex}.replies.${replyIndex}.comment`]: comment },
+			},
+			options
+		);
+	} else {
+		post = await Post.findOneAndUpdate(
+			{ _id: postId, "comments._id": commentId },
+			{
+				$set: { "comments.$.comment": comment },
+			},
+			options
+		);
+	}
 	if (!post) throw new NotFoundError(`No post with id ${id}`);
 	res.status(StatusCodes.OK).json({ post });
 };

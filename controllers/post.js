@@ -60,6 +60,20 @@ const commentPost = async (req, res) => {
 	res.status(StatusCodes.OK).json({ post });
 };
 
+const deleteComment = async (req, res) => {
+	const { postId, commentId } = req.query;
+	const { id: commentedBy } = req.user;
+	const post = await Post.findByIdAndUpdate(
+		postId,
+		{
+			$pull: { comments: { commentedBy, _id: commentId } },
+		},
+		options
+	);
+	if (!post) throw new NotFoundError(`No post with id ${id}`);
+	res.status(StatusCodes.OK).json({ post });
+};
+
 const deletePost = async (req, res) => {
 	const { id } = req.params;
 	const post = await Post.findOneAndDelete({ _id: id, createdBy: req.user.id });
@@ -92,4 +106,5 @@ module.exports = {
 	commentPost,
 	deletePost,
 	updatePost,
+	deleteComment,
 };

@@ -74,6 +74,21 @@ const deleteComment = async (req, res) => {
 	res.status(StatusCodes.OK).json({ post });
 };
 
+const editComment = async (req, res) => {
+	const { postId, commentId, comment } = req.body;
+	const { id: commentedBy } = req.user;
+	await Post.findOneAndUpdate(
+		{ _id: postId, "comments._id": commentId, "comments.commentedBy": commentedBy },
+		{
+			$set: { "comments.$.comment": `${comment} (edited)` },
+		},
+		options
+	);
+	const post = await Post.findById(postId);
+	if (!post) throw new NotFoundError(`No post with id ${id}`);
+	res.status(StatusCodes.OK).json({ post });
+};
+
 const deletePost = async (req, res) => {
 	const { id } = req.params;
 	const post = await Post.findOneAndDelete({ _id: id, createdBy: req.user.id });
@@ -107,4 +122,5 @@ module.exports = {
 	deletePost,
 	updatePost,
 	deleteComment,
+	editComment,
 };

@@ -76,11 +76,10 @@ const deleteComment = async (req, res) => {
 
 const editComment = async (req, res) => {
 	const { postId, commentId, comment } = req.body;
-	const { id: commentedBy } = req.user;
 	await Post.findOneAndUpdate(
-		{ _id: postId, "comments._id": commentId, "comments.commentedBy": commentedBy },
+		{ _id: postId, "comments._id": commentId },
 		{
-			$set: { "comments.$.comment": `${comment} (edited)` },
+			$set: { "comments.$.comment": comment },
 		},
 		options
 	);
